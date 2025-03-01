@@ -63,7 +63,7 @@ scrolls:
   #   num_segments: 10  # Reads 10 random segments from this scroll
 
 # Validation segment frequency
-val_seg_mod: 5  # Every 5th segment is used for validation (set "-1" to disable)
+validation_segments_mod: 5  # Every 5th segment is used for validation (set "-1" to disable)
 
 ```
 
@@ -73,10 +73,10 @@ val_seg_mod: 5  # Every 5th segment is used for validation (set "-1" to disable)
 - `num_segments`:
     - **-1** → Read all segments from this scroll
     - **n** → Select n random segments from this scroll (Replace **n** with an actual value)
-- `val_seg_mod`: Controls how often a segment is assigned to validation.
+- `validation_segments_mod`: Controls how often a segment is assigned to validation.
 
 
-🚨 Important: During data collection, no explicit validation data was specified so by default, everything is saved as training data. If needed, adjust `validation_fragment_id` and `val_seg_mod` to designate validation samples.
+🚨 Important: During data collection, no explicit validation data was specified so by default, everything is saved as training data. If needed, adjust `validation_fragment_id` and `validation_segments_mod` to designate validation samples.
 
 
 ### 2️⃣ Training the Model
