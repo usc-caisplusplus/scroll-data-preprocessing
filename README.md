@@ -45,6 +45,20 @@ python data_preprocessing/preprocessing.py
 
 This script processes image fragments and segmentation masks, splitting them into **train, validation, and test** sets.
 
+#### Customizing Preprocessing Parameters
+You can modify dataset parameters in config/config.yaml before running the script. Some key parameters you might want to tweak:
+
+```yaml
+fragments: ["fragment_1", "fragment_2"]  # List of fragments to process
+validation_fragment_id: "fragment_3"     # Fragment used for validation
+tile_size: 256                           # Size of image tiles
+stride: 128                              # Stride for tiling
+use_cache: True                          # Enable caching for faster preprocessing
+```
+
+Change the `fragments list` to specify which image fragments to include. Modify `validation_fragment_id` to set a different fragment for validation. Adjust `tile_size` and `stride` to control the size and overlap of extracted patches. Enable `use_cache` to speed up preprocessing by storing intermediate results.
+
+
 ### 2️⃣ Training the Model
 To train the segmentation model, run:
 
