@@ -49,14 +49,34 @@ This script processes image fragments and segmentation masks, splitting them int
 You can modify dataset parameters in config/config.yaml before running the script. Some key parameters you might want to tweak:
 
 ```yaml
-fragments: ["fragment_1", "fragment_2"]  # List of fragments to process
-validation_fragment_id: "fragment_3"     # Fragment used for validation
-tile_size: 256                           # Size of image tiles
-stride: 128                              # Stride for tiling
-use_cache: True                          # Enable caching for faster preprocessing
+# Fragments to process
+fragment_ids: [1, 2, 3]  # List of fragment numbers to include
+
+# Specify a single fragment for validation
+validation_fragment_id: 1  # Set to "-1" to disable validation
+
+# Segments to process
+scrolls:
+  - scroll_id: 2
+    num_segments: -1  # "-1" means process all segments from this scroll
+  # - scroll_id: 3
+  #   num_segments: 10  # Reads 10 random segments from this scroll
+
+# Validation segment frequency
+val_seg_mod: 5  # Every 5th segment is used for validation (set "-1" to disable)
+
 ```
 
-Change the `fragments list` to specify which image fragments to include. Modify `validation_fragment_id` to set a different fragment for validation. Adjust `tile_size` and `stride` to control the size and overlap of extracted patches. Enable `use_cache` to speed up preprocessing by storing intermediate results.
+- `fragment_ids`: List of fragment numbers to process.
+- `validation_fragment_id`: Select a single fragment for validation (-1 disables validation).
+- `scrolls`: Specifies which scrolls to read and how many random segments to include.
+- `num_segments`:
+    - **-1** → Read all segments from this scroll
+    - **n** → Select n random segments from this scroll (Replace **n** with an actual value)
+- `val_seg_mod`: Controls how often a segment is assigned to validation.
+
+
+🚨 Important: During data collection, no explicit validation data was specified so by default, everything is saved as training data. If needed, adjust `validation_fragment_id` and `val_seg_mod` to designate validation samples.
 
 
 ### 2️⃣ Training the Model
