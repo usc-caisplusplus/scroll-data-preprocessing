@@ -1,0 +1,5 @@
+torch
+hydra-core
+wandb
+numpy
+zarr

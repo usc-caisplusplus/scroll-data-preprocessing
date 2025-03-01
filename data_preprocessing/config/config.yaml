@@ -1,0 +1,50 @@
+# Configuration for the training pipeline
+
+comp_name: "vesuvius"
+exp_name: "pretraining_all"
+comp_dataset_path: "../../../VesuviusDataDownload/"  # Path to the dataset (formerly data_path)
+
+seed: 42                # Seed for reproducibility
+device: "cuda"          # Use 'cuda' for GPU training, or 'cpu'
+lr: 1e-3
+min_lr: 1e-6
+warmup_epochs: 2
+epochs: 10
+num_workers: 4
+model_dir: "./models"
+scheduler_t_max: 10
+
+weight_decay: 1e-6
+
+# Model configuration
+in_chans: 26           # Number of input channels (layers)
+size: 64               # Size of the input patches
+tile_size: 256         # Size of the tiles to extract patches from
+stride: 32             # Stride for tiling (typically tile_size // 8)
+train_batch_size: 196
+valid_batch_size: 196
+
+# Fragments to process
+fragment_ids: [1, 3]
+validation_fragment_id: 3
+flip_ids: []
+
+# Segments to read in
+scrolls:
+  # (scroll_id, num_segments) specifies number of segments to read from that scroll
+  # Randomly selects num_segments segments to read
+  - scroll_id: 1
+    num_segments: 2
+  - scroll_id: 2
+    num_segments: 12
+
+# Define a validation mod, so every n-th segment is used for validation, where n is defined below
+validation_segments_mod: 10
+
+# Use caching to save processed data
+use_cache: True
+
+
+# Dataset parameters
+start_idx: 22         # Starting index of layers to read
+end_idx: 38           # Ending index of layers to read
