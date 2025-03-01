@@ -1,7 +1,3 @@
-Here's a structured **README.md** for the repository based on the provided files:
-
----
-
 # Scroll Data Preprocessing
 
 This repository contains data preprocessing scripts for handling scroll dataset images and segmentation masks. The pipeline includes dataset preparation, normalization, augmentation, and model training using **PyTorch Lightning** and **TimeSformer** for temporal segmentation.
