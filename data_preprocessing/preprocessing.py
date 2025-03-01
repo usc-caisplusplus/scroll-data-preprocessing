@@ -108,6 +108,8 @@ def prepare_datasets(
             elif num_segments == -1:
                 selected_segment_dirs = segment_dirs
 
+            
+
             # Call function to process each segment
             idx = start_idx
             for segment_id in selected_segment_dirs:
@@ -116,6 +118,7 @@ def prepare_datasets(
                 if val_seg_mod and (idx + 1) % val_seg_mod == 0:
                     is_val = True
                 # print(f'segment {segment_id} in scroll {scroll_id}, so val = {val_id}')
+
                 segment_results[idx] = process_fragment_or_segment(segment_id, is_val, scroll_id, cfg)
                 idx += 1
         
@@ -184,13 +187,13 @@ def process_fragment_or_segment(
 
     if scroll_id < 0:
         data_path = os.path.join(hydra.utils.get_original_cwd(), cfg.comp_dataset_path, f"Fragments/Fragment{id}")
-        print('Processing fragment', id)
+        print('\nProcessing fragment', id)
     else:
         data_path = os.path.join(hydra.utils.get_original_cwd(), cfg.comp_dataset_path, f"Scroll{scroll_id}/segments/{id}")
-        print(f"Processing segment {id} (scroll {scroll_id}), is_val = {'True' if is_val else 'False'}")
+        print(f"\nProcessing segment {id} (scroll {scroll_id}), is_val = {'True' if is_val else 'False'}")
 
     if not os.path.exists(data_path):
-        print(f"Fragment/segment directory does not exist: {data_path}")
+        print(f"\nFragment/segment directory does not exist: {data_path}")
         return None
 
 
@@ -201,16 +204,30 @@ def process_fragment_or_segment(
     use_cache = cfg.get('use_cache', False)
     dataset_names = ['train_images', 'train_masks', 'valid_images', 'valid_masks', 'valid_xyxys']
     os.makedirs(cache_dir, exist_ok=True)
-    if use_cache and False:
+    if use_cache:
+        try:
+            # Open or create a Zarr store
+            store = zarr.DirectoryStore(cache_path)
+            root = zarr.group(store)
 
-        # Open or create a Zarr store
-        store = zarr.DirectoryStore(cache_dir)
-        root = zarr.group(store)
+            # Check if all datasets exist
+            if all(name in root for name in dataset_names):
+                print(f"Loading cached processed data for {f'fragment {id}' if scroll_id < 0 else f'segment {id} (scroll {scroll_id})'}.")
 
-        # Check if all datasets exist
-        if all(name in root for name in dataset_names):
-            print(f"Loading cached processed data for {f'fragment {id}' if scroll_id < 0 else f'segment {id} (scroll {scroll_id})'}.")
-            return tuple(root[name][:] for name in dataset_names)
+                data = tuple(root[name][:] for name in dataset_names)
+
+                # Extract train_images and valid_images from data
+                train_images = data[dataset_names.index("train_images")]
+                valid_images = data[dataset_names.index("valid_images")]
+
+                if train_images.size == 0 and valid_images.size == 0:
+                    print("\tCache found but contains no data. Skipping cached load.")
+                else:
+                    print("\tCache found and successfully loaded.")
+                    return data
+
+        except Exception as e:
+            print(f"Error loading from cache for {f'fragment {id}' if scroll_id < 0 else f'segment {id} (scroll {scroll_id})'}: {e}")
 
 
     try:
@@ -243,7 +260,7 @@ def process_fragment_or_segment(
                             x2 = x1 + cfg.size
                             image_patch = image[y1:y2, x1:x2]
                             mask_patch = mask[y1:y2, x1:x2, None]
-                            if id != cfg.validation_fragment_id:
+                            if not is_val:
                                 train_images.append(image_patch)
                                 train_masks.append(mask_patch)
                             else:
@@ -253,20 +270,24 @@ def process_fragment_or_segment(
                                     valid_masks.append(mask_patch)
                                     valid_xyxys.append(coords)
                                     windows_set.add(coords)
+
+    # Save to cache
+    if use_cache:
+        try:
+            store = zarr.DirectoryStore(cache_path)
+            root = zarr.open(store, mode='w')
+
+            for name in dataset_names:
+                root.create_dataset(name, data=locals()[name], overwrite=True)
+
+            print(f"\tSaved processed data for {f'fragment {id}' if scroll_id < 0 else f'segment {id} (scroll {scroll_id})'} to cache.")
+        except MemoryError as e:
+            print(f"MemoryError encountered while saving to cache for {f'fragment {id}' if scroll_id < 0 else f'segment {id} (scroll {scroll_id})'}: {e}")
+    
     if scroll_id < 0:
         print("Finished processing fragment:", id)
     else:
         print(f'Finished processing segment {id} (scroll {scroll_id})')
-
-    # Save to cache
-    if use_cache:
-        store = zarr.DirectoryStore(cache_path)
-        root = zarr.open(store, mode='w')
-
-        for name in dataset_names:
-            root.create_dataset(name, data=locals()[name], overwrite=True)
-
-        print(f"\tSaved processed data for {f'fragment {id}' if scroll_id < 0 else f'segment {id} (scroll {scroll_id})'} to cache.")
 
     return train_images, train_masks, valid_images, valid_masks, valid_xyxys
 
