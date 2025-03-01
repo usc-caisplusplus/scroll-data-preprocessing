@@ -36,6 +36,60 @@ pip install -e .
 
 ## 🚀 Usage
 
+### 📂 Expected Data Format
+
+Before running the preprocessing or training scripts, ensure your data is structured as follows:
+
+```
+<comp_dataset_path>/  # Root data directory (specified in config.yaml)
+├── Fragments/
+│   ├── Fragment1/
+│   │   ├── cache/
+│   │   │   ├── data.zarr/  # Preprocessed fragment data
+│   ├── Fragment2/
+│   │   ├── cache/
+│   │   │   ├── data.zarr/
+│   ├── ...
+│
+├── Scroll1/
+│   ├── segments/
+│   │   ├── 20230503225234/
+│   │   │   ├── cache/
+│   │   │   │   ├── data.zarr/  # Preprocessed segment data
+│   │   ├── 20230504093154/
+│   │   │   ├── cache/
+│   │   │   │   ├── data.zarr/
+│   │   ├── 20230504094316/
+│   │   │   ├── cache/
+│   │   │   │   ├── data.zarr/
+│   │   ├── ...
+│
+├── Scroll2/
+│   ├── segments/
+│   │   ├── <segment_number>/
+│   │   │   ├── cache/
+│   │   │   │   ├── data.zarr/
+│   │   ├── ...
+```
+
+Each `data.zarr/` directory contains processed fragment or segment data. This is the dataset that will be available for download from our submission (more details on where/how to access this will be added later).
+
+#### Using Cached Data
+If your dataset is structured exactly as shown above, you do not need to preprocess the data manually. Instead, simply run the training script:
+
+```bash
+python data_preprocessing/main.py
+```
+#### Enabling Cached Data Loading
+To skip preprocessing and load cached `.zarr/` files instead, ensure `use_cache` is enabled in config.yaml:
+
+```yaml
+comp_dataset_path: "/path/to/your/data"  # Update this path to your dataset location
+use_cache: True  # Load preprocessed data instead of recomputing
+```
+
+This ensures that main.py will automatically read from the existing `cache/data.zarr/` directories, speeding up the pipeline.
+
 ### 1️⃣ Dataset Preparation
 Before training, preprocess the dataset using:
 
